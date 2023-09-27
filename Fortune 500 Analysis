@@ -1,3 +1,5 @@
+-- The analysis provided below uses the following data:
+
 CREATE TABLE fortune_companies (
     company_id INTEGER PRIMARY KEY,
     company_name TEXT,
@@ -56,7 +58,11 @@ VALUES
     ('Company JJ', 'Manufacturing', 370.0, 3100, 1, 20, 12, 7.6),
     ('Company KK', 'Healthcare', 150.2, 3400, 0, 16, 8, 5.3);
 
--- What companies have at least 3 weeks worth of paid time off days?
+-- You are looking for a new job and want to work at a sucessful Fortune 500 company. 
+-- To find the best match, you want to do some cursory analysis of the top companies benefits and overall performance. 
+-- The apporach is find a company that both offers benefits, and is a key player in the current economy.
+
+-- What companies have at least 3 weeks worth of paid time off days? 
 SELECT *
   FROM fortune_companies
  WHERE paid_time_off_days>=21;

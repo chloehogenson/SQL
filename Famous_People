@@ -1,0 +1,92 @@
+/* Create table about famous people with some information about them */
+
+CREATE TABLE famous_people (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fullname TEXT,
+    age INTEGER,
+    career TEXT,
+    significant_other TEXT,
+    networth INTEGER);
+    
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Lady Gaga", 37, "Singer", "Single", 320000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Kim Kardashian", 42, "Influencer", "Single", 1700000000); 
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Rhianna", 35, "Singer", "A$AP Rocky", 1400000000); 
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("A$AP Rocky", 35, "Rapper", "Rhianna", 23000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Leonardo Dicaprio", 48, "Actor", "Single", 300000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Zendaya", 27, "Actor", "Tom Holland", 20000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Tom Holland", 27, "Actor", "Zendaya", 25000000); 
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Taylor Swift", 33, "Singer", "Travis Kelce", 740000000); 
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Christiano Ronaldo", 38, "Professional Athlete", "Georgina Rodriguez", 849000000); 
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Simone Biles", 26, "Professional Athlete", "Johnathan Owens", 20000000); 
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Hillary Clinton", 75, "Politican", "Bill Clinton", 120000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Jimmy Falon", 49, "Late Night Host", "Nancy Juvonen", 60000000); 
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Gordon Ramsay", 56, "Chef", "Tana Ramsey", 820000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Dua Lipa", 28, "Singer", "Romain Gavras", 35000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Florence Pugh", 27, "Actor", "Single", 8000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Beyonce", 42, "Singer", "Jay-Z", 540000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Selena Gomez", 31, "Singer & Actor", "Single", 800000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Barack Obama", 42, "Politician & Former President", "Michelle Obama", 80000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Stephen King", 76, "Author", "Tabitha King", 500000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Jimmy Kimmel", 55, "Late Night Host", "Molly McNeary", 50000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Michael Phelps", 38, "Professional Athlete", "Nicole Johnson", 100000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Jay-Z", 53, "Rapper & Producer", "Beyonce", 2500000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Martha Stewart", 82, "Entreprenuer", "Single", 400000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Miley Cyrus", 30, "Singer", "Single", 160000000);
+INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Emma Chamberlain", 22, "Influencer", "Role Model", 22000000);
+
+/* Use the table created to analyze the data set through documenting interrogative questions and the query that answers it. */
+
+SELECT * FROM famous_people; 
+
+/* What Celebrities are dating or married to eachother?*/ 
+SELECT f1.fullname AS famous_person, f2.fullname AS spouse
+  FROM famous_people f1
+  JOIN famous_people f2
+    ON f1.significant_other=f2.fullname; 
+
+/*Whats the average net worth of these celebrities?*/
+SELECT ROUND(AVG(networth), 0) AS Avg_Networth FROM famous_people;
+
+/*What are the the occupations of the celebrities in the table?*/
+SELECT DISTINCT career
+  FROM famous_people; 
+
+/*Who is the youngest?*/
+SELECT MIN(age)
+  FROM famous_people;
+
+/*What occupations do the celebrities with the highest net worth do for a career?*/
+SELECT fullname, career, networth
+  FROM famous_people
+ ORDER BY networth DESC
+ LIMIT 3;
+ 
+ /*What is the average networth of these top 3 celebrities?*/
+SELECT ROUND(AVG(networth),0) AS top_average_networth 
+  FROM (SELECT fullname, career, networth
+  FROM famous_people
+ ORDER BY networth DESC
+ LIMIT 3); 
+
+/*What are the average ages of the celebrities in each careeer category?*/
+SELECT career, AVG(age) AS average_celeb_age
+  FROM famous_people
+ GROUP BY career
+ ORDER BY AVG(age);
+ 
+/*What are the average networths of the celebrities in each careeer category?*/
+SELECT career, AVG(networth) AS average_celeb_networth
+  FROM famous_people
+ GROUP BY career
+ ORDER BY AVG(networth) DESC;
+ 
+/*What celebs are single?*/
+SELECT *
+  FROM famous_people
+ WHERE significant_other="Single"; 
+ 
+/*Whats the average age of the single celebrities?*/
+SELECT ROUND(AVG(age),1) AS avg_singles_age
+  FROM (SELECT *
+  FROM famous_people
+ WHERE significant_other="Single");

@@ -1,4 +1,4 @@
-/* Create table about famous people with some information about them */
+/* Create table about famous people with some information about them. Then create another table with a primary key related variable to start a database schema */
 
 CREATE TABLE famous_people (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,9 +34,36 @@ INSERT INTO famous_people (fullname, age, career, significant_other, networth) V
 INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Miley Cyrus", 30, "Singer", "Single", 160000000);
 INSERT INTO famous_people (fullname, age, career, significant_other, networth) VALUES ("Emma Chamberlain", 22, "Influencer", "Role Model", 22000000);
 
+CREATE TABLE projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    owner_id INTEGER,
+    year_released INTEGER,
+    genre TEXT);
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Euphoria", 6, 2019, "Drama");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Midsommar", 15, 2019, "Suspense");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Titanic", 5, 1997, "Drama");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Born This Way", 1, 2011, "Pop"); 
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Endless Summer Vacation", 24, 2023, "Pop");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Lemonade", 16, 2016, "R&B"); 
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Renaissance", 16, 2022, "R&B");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Keeping Up With the Karashians", 2, 2007, "Reality TV");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Loud", 3, 2010, "R&B");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Jimmy Kimmel Live!", 20, 2003, "Talk Show");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Stars Dance", 17, 2013, "Pop");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Hell's Kitchen", 13, 2005, "Cooking Show");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("The Crowded Room", 7, 2023, "Drama");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("IT", 19, 1986, "Horror");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("The Shinning", 19, 1977, "Horror"); 
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("The Blueprint", 22, 2001, "Hip-Hop");
+INSERT INTO projects (title, owner_id, year_released, genre) VALUES("Live. Love. ASAP", 4, 2011, "Hip-Hop");
+
+
 /* Use the table created to analyze the data set through documenting interrogative questions and the query that answers it. */
 
 SELECT * FROM famous_people; 
+
+SELECT * FROM projects;
 
 /* What Celebrities are dating or married to eachother?*/ 
 SELECT f1.fullname AS famous_person, f2.fullname AS spouse
@@ -90,3 +117,40 @@ SELECT ROUND(AVG(age),1) AS avg_singles_age
   FROM (SELECT *
   FROM famous_people
  WHERE significant_other="Single");
+ 
+/*Join the two tables to see the project title with the owner's name next to it*/
+SELECT p.title, fp.fullname 
+  FROM projects p
+  JOIN famous_people fp
+    ON p.owner_id=fp.id;
+    
+/*What is the combined networth of the celebrities with Pop genre projects?*/
+SELECT p.genre, SUM(fp.networth) AS total_celeb_networth
+  FROM projects p
+  JOIN famous_people fp 
+    ON p.owner_id=fp.id
+ WHERE genre="Pop";
+
+/*What celebs have done Drama projects?*/
+SELECT p.genre, p.title, fp.fullname
+  FROM projects p
+  JOIN famous_people fp 
+    ON p.owner_id=fp.id
+ WHERE genre="Drama";
+ 
+/*What is the oldest project in the data set?*/
+SELECT title, MIN(year_released)
+  FROM projects;
+  
+/*Put the project titles into alphabetical order*/
+SELECT *
+  FROM projects 
+ ORDER BY title;
+ 
+/*What celebrities have the most recent projects?*/
+SELECT fp.fullname, p.title, p.year_released AS year_released
+  FROM famous_people fp
+  JOIN projects p
+    ON fp.id=p.owner_id
+ ORDER BY year_released DESC 
+ LIMIT 3;

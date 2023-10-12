@@ -57,3 +57,17 @@ LIMIT 5;
 /*How long is duration of all the songs in the dataset combined? (Convert to minutes)*/
 SELECT SUM(duration_ms)/1000/60 AS duration_min
 FROM BIT_DB.Spotifydata; 
+
+/*Calculate the average popularity for the artists in the table*/
+/*Then, for every artist with an average popularity of 90 or above, show their name, avg popularity, and label them as a 'Top Star'*/
+/*Use a CTE to execute the query*/
+
+WITH avg_popularity_CTE AS(
+SELECT DISTINCT artist_name, AVG(popularity) AS arist_avg_popularity
+FROM Spotifydata
+GROUP BY artist_name
+)
+SELECT artist_name, artist_avg_popularity, 'Top Star' AS tag
+FROM avg_popularity_CTE
+WHERE avg_popularity>=90;
+

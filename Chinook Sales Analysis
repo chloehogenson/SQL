@@ -1,0 +1,110 @@
+/*The following uses data from the Chinook Database that contains information on a customers, tracks, invoices, employees, etc. all organized into 11 tables.*/
+/*Using this database uploaded through a .csv file into SQLiteStudio to complete the following analysis*/
+
+/* The higher-ups at Chinook want a breakdown of sales by the billing country listed on the invoice */
+/* What was the average invoice total per country? */
+SELECT DISTINCT BillingCountry, ROUND(SUM(Total)/COUNT(Total), 2) AS Avg_invoice_total 
+FROM invoices
+GROUP BY BillingCountry;
+
+/* What country has the most unique customers? (opposed to total number of sales). What is the total number of unique customers?*/ 
+SELECT DISTINCT BillingCountry, COUNT(DISTINCT CustomerId) AS 'UniqueCustomers'
+FROM invoices
+GROUP BY BillingCountry
+ORDER BY UniqueCustomers DESC
+LIMIT 1;
+
+SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers
+ FROM invoices;
+
+/*What are the total number of orders per country?*/
+SELECT DISTINCT BillingCountry, COUNT(InvoiceId) AS 'TotalOrders'
+FROM invoices
+GROUP BY BillingCountry
+ORDER BY TotalOrders DESC;
+
+/*What is the most popular genre for each billing country?*/
+WITH genre_breakdown AS(SELECT DISTINCT i.BillingCountry, g.name AS Genre, COUNT(t.genreID) AS NumOfTracksSoldInGenre
+FROM invoices i
+LEFT JOIN invoice_items ii
+ON i.InvoiceID=ii.InvoiceID
+LEFT JOIN tracks t
+ON ii.TrackId=t.TrackId 
+LEFT JOIN genres g
+ON t.GenreId=g.genreID
+GROUP BY i.BillingCountry, g.name
+ORDER BY i.BillingCountry, NumOfTracksSoldInGenre DESC)
+
+SELECT BillingCountry, Genre, MAX(NumOfTracksSoldInGenre)
+FROM genre_breakdown
+GROUP BY BillingCountry;
+
+/*What countries are listed on the invoices with the largest sales?*/
+SELECT BillingCountry, Total, InvoiceId
+FROM invoices
+ORDER BY Total DESC
+LIMIT 5; 
+
+/*What tracks are most popular in the USA?*/
+SELECT t.Name, COUNT(ii.TrackId) AS TotalSold
+  FROM invoices i JOIN invoice_items ii ON i.InvoiceId=ii.InvoiceId
+  JOIN tracks t ON ii.TrackId=t.TrackId
+WHERE i.BillingCountry = 'USA' 
+GROUP BY t.Name
+ORDER BY TotalSold DESC
+LIMIT 5;
+
+/*Say we want to start a rewards program. We want to give those who have spent more than $40 the title of 'Priority Customers'.*/ 
+/*We need to make a list of these customers with their email for the marketing team.*/ 
+SELECT i.CustomerId, c.FirstName, c.LastName, c.Email, SUM(i.Total) AS total_spent, 'Priority Customer' AS 'Label'
+ FROM invoices i JOIN customers c ON i.CustomerId=c.CustomerId
+ GROUP BY i.CustomerId 
+ HAVING total_spent>40 
+ ORDER BY total_spent DESC; 
+
+/*We want to see the employee name next to their associated customers along with the number of orders per customer listed*/
+WITH cust_orders AS(
+SELECT CustomerId, COUNT(InvoiceId) AS customer_order_count 
+FROM invoices GROUP BY CustomerId
+)
+SELECT e.FirstName||' '||e.LastName AS employee_full_name, c.FirstName||' '||c.LastName AS customer_full_name, customer_order_count
+FROM employees e JOIN customers c ON e.EmployeeId=c.SupportRepId
+JOIN cust_orders ON c.CustomerID=cust_orders.CustomerId
+ORDER BY employee_full_name;
+
+/*What countries have an above average invoice total?*/
+SELECT DISTINCT BillingCountry, ROUND(SUM(Total)/COUNT(Total), 2) AS Avg_invoice_total_country
+FROM invoices
+GROUP BY BillingCountry
+HAVING Avg_invoice_total_country>(SELECT ROUND(AVG(Total), 2) FROM invoices)
+ORDER BY Avg_invoice_total_country DESC;
+
+/*What artists are the most popular in each country*/
+WITH artist_breakdown AS(
+SELECT DISTINCT i.BillingCountry, artists.Name AS ArtistName, COUNT(t.composer) AS NumOfTracksSoldByArtists
+FROM invoices i
+LEFT JOIN invoice_items ii
+ON i.InvoiceID=ii.InvoiceID
+LEFT JOIN tracks t
+ON ii.TrackId=t.TrackId 
+LEFT JOIN albums a
+ON t.AlbumId=a.AlbumId
+LEFT JOIN artists 
+ON a.ArtistId=artists.ArtistId
+GROUP BY i.BillingCountry, ArtistName
+ORDER BY i.BillingCountry, ArtistName)
+
+SELECT BillingCountry, ArtistName, MAX(NumOfTracksSoldByArtists)
+FROM artist_breakdown
+GROUP BY BillingCountry;
+
+/*What are the total sales brought in by each employee?*/
+WITH cust_totals AS(
+SELECT CustomerID, SUM(Total) AS Customer_totals
+FROM invoices GROUP BY CustomerID
+)
+SELECT e.FirstName||' '||e.LastName AS employee_full_name, ROUND(SUM(Customer_Totals), 2) AS employee_net_revenue
+FROM employees e JOIN customers c ON e.EmployeeId=c.SupportRepId
+JOIN cust_totals ON c.CustomerId=cust_totals.CustomerID
+GROUP BY employee_full_name
+ORDER BY employee_net_revenue DESC;

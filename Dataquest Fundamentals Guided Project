@@ -1,0 +1,156 @@
+/*Table Descriptions*/
+SELECT 'Customers' AS table_name, 
+       13 AS number_of_attribute,
+       COUNT(*) AS number_of_row
+  FROM Customers
+  
+UNION ALL
+
+SELECT 'Products' AS table_name, 
+       9 AS number_of_attribute,
+       COUNT(*) AS number_of_row
+  FROM Products
+
+UNION ALL
+
+SELECT 'ProductLines' AS table_name, 
+       4 AS number_of_attribute,
+       COUNT(*) AS number_of_row
+  FROM ProductLines
+
+UNION ALL
+
+SELECT 'Orders' AS table_name, 
+       7 AS number_of_attribute,
+       COUNT(*) AS number_of_row
+  FROM Orders
+
+UNION ALL
+
+SELECT 'OrderDetails' AS table_name, 
+       5 AS number_of_attribute,
+       COUNT(*) AS number_of_row
+  FROM OrderDetails
+
+UNION ALL
+
+SELECT 'Payments' AS table_name, 
+       4 AS number_of_attribute,
+       COUNT(*) AS number_of_row
+  FROM Payments
+
+UNION ALL
+
+SELECT 'Employees' AS table_name, 
+       8 AS number_of_attribute,
+       COUNT(*) AS number_of_row
+  FROM Employees
+
+UNION ALL
+
+SELECT 'Offices' AS table_name, 
+       9 AS number_of_attribute,
+       COUNT(*) AS number_of_row
+  FROM Offices;
+
+/*Finding the low stock items*/
+SELECT productCode, 
+       ROUND(SUM(quantityOrdered) * 1.0 / (SELECT quantityInStock
+                                             FROM products p
+                                            WHERE od.productCode = p.productCode), 2) AS low_stock
+  FROM orderdetails od
+ GROUP BY productCode
+ ORDER BY low_stock DESC
+ LIMIT 10;
+
+/*Finding high-performance items*/
+SELECT productCode, 
+       SUM(quantityOrdered * priceEach) AS prod_perf
+  FROM orderdetails od
+ GROUP BY productCode 
+ ORDER BY prod_perf DESC
+ LIMIT 10;
+
+/*Using a CTE and the Previous two queries, finding high performance items to restock (what to order more of)*/
+WITH low_stock_table AS 
+(
+SELECT productCode, 
+       ROUND(SUM(quantityOrdered) * 1.0/(SELECT quantityInStock
+                                           FROM products p
+                                          WHERE od.productCode = p.productCode), 2) AS low_stock
+  FROM orderdetails od
+ GROUP BY productCode
+ ORDER BY low_stock DESC
+ LIMIT 10
+)
+SELECT productCode, 
+       SUM(quantityOrdered * priceEach) AS prod_perf
+  FROM orderdetails od
+ WHERE productCode IN (SELECT productCode
+                         FROM low_stock_table)
+ GROUP BY productCode 
+ ORDER BY prod_perf DESC
+ LIMIT 10;
+
+/*Calculating customer profit*/
+SELECT o.customerNumber, SUM(od.quantityOrdered*(od.priceEach-p.buyPrice)) AS customerProfit
+   FROM orders AS o
+   JOIN orderdetails AS od
+        ON o.orderNumber=od.orderNumber
+   JOIN products AS p
+       ON od.productCode=p.productCode
+	 GROUP BY customerNumber
+	ORDER BY customerProfit DESC;
+
+/*Finding the most profitable customers using a CTE*/
+WITH profitPerCustomer AS
+(
+SELECT o.customerNumber, SUM(od.quantityOrdered*(od.priceEach-p.buyPrice)) AS customerProfit
+   FROM orders AS o
+   JOIN orderdetails AS od
+        ON o.orderNumber=od.orderNumber
+   JOIN products AS p
+       ON od.productCode=p.productCode
+	 GROUP BY customerNumber
+	ORDER BY customerProfit DESC
+	)
+	SELECT c.contactLastName, c.contactFirstName, c.city, c.country, p.customerProfit
+	  FROM customers AS c
+	  JOIN profitPerCustomer AS p
+	    ON c.customerNumber=p.customerNumber
+		ORDER BY p.customerProfit DESC
+		LIMIT 5;
+
+/* Using the same CTE, finding the least profitable customers*/		
+WITH profitPerCustomer AS
+(
+SELECT o.customerNumber, SUM(od.quantityOrdered*(od.priceEach-p.buyPrice)) AS customerProfit
+   FROM orders AS o
+   JOIN orderdetails AS od
+        ON o.orderNumber=od.orderNumber
+   JOIN products AS p
+       ON od.productCode=p.productCode
+	 GROUP BY customerNumber
+	ORDER BY customerProfit DESC
+	)
+		SELECT c.contactLastName, c.contactFirstName, c.city, c.country, p.customerProfit
+	  FROM customers AS c
+	  JOIN profitPerCustomer AS p
+	    ON c.customerNumber=p.customerNumber
+		ORDER BY p.customerProfit ASC
+		LIMIT 5;
+
+/*Finding the Customer Lifetime Value through average profitablibity of customers. This is done to determine marketing budgets*/
+WITH profitPerCustomer AS
+(
+SELECT o.customerNumber, SUM(od.quantityOrdered*(od.priceEach-p.buyPrice)) AS customerProfit
+   FROM orders AS o
+   JOIN orderdetails AS od
+        ON o.orderNumber=od.orderNumber
+   JOIN products AS p
+       ON od.productCode=p.productCode
+	 GROUP BY customerNumber
+	ORDER BY customerProfit DESC
+	)
+SELECT ROUND( avg(customerProfit), 2) AS avgCustomerLTV
+  FROM profitPerCustomer;
